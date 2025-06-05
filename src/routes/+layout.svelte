@@ -10,6 +10,14 @@
   let { children }: Props = $props()
 </script>
 
+<svelte:head>
+  <script src="https://code.highcharts.com/highcharts.js" defer></script>
+  <script
+    src="https://code.highcharts.com/modules/solid-gauge.js"
+    defer
+  ></script>
+</svelte:head>
+
 {#if $navigating}
   <!-- 
     Loading animation for next page since svelte doesn't show any indicator. 
