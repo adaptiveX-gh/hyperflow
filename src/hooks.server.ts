@@ -70,18 +70,33 @@ const authGuard: Handle = async ({ event, resolve }) => {
 };
 
 /* ───────────────────────────── CSP header ───────────────────────────── */
+// src/hooks.server.ts  (excerpt – keep your Supabase + auth parts)
+
 const securityHeaders: Handle = async ({ event, resolve }) => {
 	const res = await resolve(event);
+
+	/* 1 — remove any CSP that might have been set earlier (e.g. by adapters) */
+	res.headers.delete('content-security-policy');
+
+	/* 2 — send ONE single-line CSP header */
 	res.headers.set(
-		'Content-Security-Policy',
+		'content-security-policy',
 		[
+			// everything else
 			"default-src 'self'",
+			// EventSource + HL REST
 			"connect-src 'self' https://api.hyperliquid.xyz",
+			// allow Highcharts CDN scripts + inline scripts we inject with <script ... defer>
+			"script-src 'self' https://code.highcharts.com 'unsafe-inline'",
+			// allow inline <style> tags DaisyUI inserts
+			"style-src 'self' 'unsafe-inline'",
+			// allow data: URIs for SVG noise / icons
 			"img-src 'self' data:",
-			"script-src 'self' 'unsafe-inline' https://code.highcharts.com",
-			"style-src 'self' 'unsafe-inline'"
+			// optional: fonts if Tailwind loads them
+			"font-src 'self' data:"
 		].join('; ')
 	);
+
 	return res;
 };
 
