@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte"
   import PriceGauge from "$lib/components/PriceGauge.svelte"
+  import TopBar from "$lib/components/TopBar.svelte"
   import { btcFeed } from "$lib/hyperliquid/btcFeed.js"
   import { getContext } from "svelte"
   import type { Writable } from "svelte/store"
@@ -35,6 +36,8 @@
 <svelte:head>
   <title>Dashboard</title>
 </svelte:head>
+
+<TopBar />
 
 <div class="card bg-base-200 shadow-xl">
   <div class="card-body">
