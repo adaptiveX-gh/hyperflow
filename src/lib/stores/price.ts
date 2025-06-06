@@ -1,3 +1,3 @@
 import { writable } from "svelte/store"
 
-export const price = writable<number | null>(null)
+export const priceStore = writable<number | null>(null)
