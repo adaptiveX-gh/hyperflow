@@ -1,5 +1,6 @@
-export async function POST({ request }) {
-  const data = await request.json()
-  console.log("startFlow", data)
-  return new Response("ok")
+import { json } from "@sveltejs/kit"
+
+export const POST = async () => {
+  globalThis.__flow_running = true
+  return json({ ok: true })
 }
