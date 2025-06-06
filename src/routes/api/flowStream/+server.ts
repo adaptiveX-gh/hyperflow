@@ -1,32 +1,34 @@
 import { PassThrough } from 'node:stream';
 
-const ENDPOINT = 'https://api.hyperliquid.xyz/info';
-const BODY     = JSON.stringify({ type: 'metaAndAssetCtxs' });
 
 export async function GET() {
   if (!globalThis.__flow_running) {
     return new Response('stream not running', { status: 409 });
   }
 
-  const stream = new PassThrough();
-  let closed   = false;
+  const stream = new PassThrough()
+  let closed = false
 
-  // Helper: fetch BTC mark price safely
-  type MarkPrice = { asset: string; markPrice: number };
-  async function fetchPrice(): Promise<number | null> {
-    const res = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: BODY
-    });
-    if (!res.ok) {
-      // log plaintext on first failure
-      console.error('Hyperliquid error', await res.text());
+  // Helper function to fetch price
+  async function fetchPrice() {
+    try {
+      const coin = globalThis.__flow_coin ?? "BTC";
+      const res = await fetch("https://api.hyperliquid.xyz/info", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "metaAndAssetCtxs", coin }),
+      });
+
+      if (!res.ok) throw new Error(await res.text());
+
+      const { markPrices } = await res.json();
+      const asset = coin.split("-")[0];
+      const mp = markPrices.find((p: { asset: string }) => p.asset === asset);
+      return mp?.markPrice ?? null;
+    } catch (err) {
+      console.error("failed to fetch price", err);
       return null;
     }
-    const json = await res.json();
-    const btc  = (json.markPrices as MarkPrice[] | undefined)?.find((p) => p.asset === 'BTC');
-    return btc?.markPrice ?? null;
   }
 
   const timer = setInterval(async () => {
@@ -50,6 +52,11 @@ export async function GET() {
     closed = true;
     clearInterval(timer);
   });
+
+  stream.on("close", () => {
+    closed = true
+    clearInterval(timer)
+  })
 
   return new Response(stream as unknown as ReadableStream<Uint8Array>, {
     headers: {
