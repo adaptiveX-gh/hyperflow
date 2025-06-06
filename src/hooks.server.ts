@@ -102,9 +102,12 @@ const securityHeaders: Handle = async ({ event, resolve }) => {
   const response = await resolve(event)
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; connect-src 'self' https://api.hyperliquid.xyz",
+    "default-src 'self'; connect-src 'self' https://api.hyperliquid.xyz; " +
+    "script-src 'self' 'unsafe-inline' https://code.highcharts.com; " +
+    "style-src 'self' 'unsafe-inline'"
   )
   return response
 }
+
 
 export const handle: Handle = sequence(supabase, authGuard, securityHeaders)
