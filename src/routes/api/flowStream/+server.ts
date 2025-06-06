@@ -6,12 +6,22 @@ export async function GET() {
   }
 
   const stream = new PassThrough()
-  const timer = setInterval(() => {
+  const timer = setInterval(async () => {
     if (!globalThis.__flow_running) {
       clearInterval(timer)
       stream.end()
     } else {
-      stream.write(`data: {"price":64000}\n\n`)
+      try {
+        const res = await fetch("https://api.hyperliquid.xyz/info", {
+          method: "POST",
+          body: JSON.stringify({ type: "metaAndAssetCtxs" }),
+        })
+        const { markPrices } = await res.json()
+        const btc = markPrices.find((p: { asset: string }) => p.asset === "BTC")
+        stream.write(`data: ${JSON.stringify({ price: btc.markPrice })}\n\n`)
+      } catch (err) {
+        console.error("failed to fetch price", err)
+      }
     }
   }, 1000)
 
