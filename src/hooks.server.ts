@@ -86,12 +86,7 @@ const securityHeaders: Handle = async ({ event, resolve }) => {
 			"default-src 'self'",
 			// EventSource + HL REST
 			"connect-src 'self' https://api.hyperliquid.xyz",
-			// allow inline <style> tags DaisyUI inserts
-			"style-src 'self' 'unsafe-inline'",
-			// allow data: URIs for SVG noise / icons
-			"img-src 'self' data:",
-			// optional: fonts if Tailwind loads them
-			"font-src 'self' data:"
+
 		].join('; ')
 	);
 
