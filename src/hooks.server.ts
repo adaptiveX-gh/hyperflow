@@ -82,7 +82,7 @@ const securityHeaders: Handle = async ({ event, resolve }) => {
 	res.headers.set(
 		'content-security-policy',
 		"default-src 'self'; " +
-		"connect-src 'self' https://api.hyperliquid.xyz; " +
+		"connect-src 'self' https://api.hyperliquid.xyz;" +
 		"img-src 'self' data:; " +
 		"script-src 'self' 'unsafe-inline'; " +
 		"style-src  'self' 'unsafe-inline'"
