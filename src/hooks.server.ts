@@ -86,8 +86,6 @@ const securityHeaders: Handle = async ({ event, resolve }) => {
 			"default-src 'self'",
 			// EventSource + HL REST
 			"connect-src 'self' https://api.hyperliquid.xyz",
-			// allow Highcharts CDN scripts + inline scripts we inject with <script ... defer>
-			"script-src 'self' https://code.highcharts.com 'unsafe-inline'",
 			// allow inline <style> tags DaisyUI inserts
 			"style-src 'self' 'unsafe-inline'",
 			// allow data: URIs for SVG noise / icons
