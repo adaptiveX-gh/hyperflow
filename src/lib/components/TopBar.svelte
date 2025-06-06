@@ -1,10 +1,8 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
-  import { writable } from "svelte/store"
+  import { activeCoin, streamRunning } from "$lib/stores/streams"
 
   const coins = ["BTC-PERP", "ETH-PERP"]
-  export const activeCoin = writable(coins[0])
-  export const streamRunning = writable(false)
 
   const dispatch = createEventDispatcher()
 

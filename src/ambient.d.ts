@@ -7,6 +7,9 @@ declare global {
     website?: string
     email?: string
   }
+  /* eslint-disable no-var */
+  var __flow_running: boolean | undefined
+  var __flow_clients: Response[] | undefined
 }
 
 export {}

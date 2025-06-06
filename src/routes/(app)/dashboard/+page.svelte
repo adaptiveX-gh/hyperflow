@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte"
   import PriceGauge from "$lib/components/PriceGauge.svelte"
+  import PriceKPI from "$lib/components/PriceKPI.svelte"
   import TopBar from "$lib/components/TopBar.svelte"
   import { btcFeed } from "$lib/hyperliquid/btcFeed.js"
   import { getContext } from "svelte"
@@ -38,6 +39,11 @@
 </svelte:head>
 
 <TopBar />
+
+<section class="flex flex-wrap gap-4 mt-4 justify-center">
+  <PriceKPI />
+  <!-- placeholders for OBI & Bias KPI (S2-01) -->
+</section>
 
 <div class="card bg-base-200 shadow-xl">
   <div class="card-body">
