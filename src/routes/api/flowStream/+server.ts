@@ -10,20 +10,28 @@ export async function GET() {
     if (!globalThis.__flow_running) {
       clearInterval(timer)
       stream.end()
-    } else {
-      try {
-        const res = await fetch("https://api.hyperliquid.xyz/info", {
-          method: "POST",
-          body: JSON.stringify({ type: "metaAndAssetCtxs" }),
-        })
-        const { markPrices } = await res.json()
-        const btc = markPrices.find((p: { asset: string }) => p.asset === "BTC")
+      return
+    }
+
+    try {
+      const res = await fetch("https://api.hyperliquid.xyz/info", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "metaAndAssetCtxs" }),
+      })
+      const { markPrices } = await res.json()
+      const btc = markPrices.find((p: { asset: string }) => p.asset === "BTC")
+      if (btc) {
         stream.write(`data: ${JSON.stringify({ price: btc.markPrice })}\n\n`)
-      } catch (err) {
-        console.error("failed to fetch price", err)
       }
+    } catch (err) {
+      console.error("failed to fetch price", err)
     }
   }, 1000)
+
+  stream.on("close", () => {
+    clearInterval(timer)
+  })
 
   return new Response(stream as unknown as ReadableStream<Uint8Array>, {
     headers: {
