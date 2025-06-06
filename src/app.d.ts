@@ -26,6 +26,6 @@ declare global {
 
 export {}
 
-declare module '$env/static/private' {
+declare module "$env/static/private" {
   export const PRIVATE_STRIPE_API_KEY: string
 }

@@ -59,11 +59,13 @@
           />
         </svg>
       </button>
-      <ul
-        class="dropdown-content menu p-2 bg-base-200 shadow rounded-box w-40"
-      >
+      <ul class="dropdown-content menu p-2 bg-base-200 shadow rounded-box w-40">
         {#each coins as coin}
-          <li><button type="button" on:click={() => selectCoin(coin)}>{coin}</button></li>
+          <li>
+            <button type="button" on:click={() => selectCoin(coin)}
+              >{coin}</button
+            >
+          </li>
         {/each}
       </ul>
     </div>
