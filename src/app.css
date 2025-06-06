@@ -1,18 +1,14 @@
 @import "tailwindcss";
 
 @plugin '@tailwindcss/typography';
-@plugin "daisyui" {
-  /* Use our custom theme by default and DaisyUI's dark theme when the system prefers dark mode. */
-  themes:
-    [ "saasstartertheme --default",
-    "dark --prefersdark"];
-}
+@plugin "daisyui";
 
+/* ─── LIGHT THEME ─────────────────────────────────────────────────────── */
 @plugin "daisyui/theme" {
   name: "saasstartertheme";
-  default: true; /* set as default */
-  prefersdark: false; /* set as default dark mode (prefers-color-scheme:dark) */
-  color-scheme: light; /* color of browser-provided UI */
+  default: true;
+  prefersdark: true;
+  color-scheme: light;
 
   --color-primary: #180042;
   --color-primary-content: #fefbf6;
@@ -35,33 +31,61 @@
   --color-error: #f77272;
   --color-error-content: oklch(98% 0.01 30);
 
-  /* border radius */
   --radius-selector: 1rem;
   --radius-field: 0.5rem;
   --radius-box: 0.5rem;
 
-  /* base sizes */
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
 
-  /* border size */
   --border: 1px;
 
-  /* effects */
   --depth: 1;
   --noise: 0;
 }
 
-/*
-  Tailwind CSS v4 Migration:
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
+/* ─── DARK THEME ─────────────────────────────────────────────────────── */
+@plugin "daisyui/theme" {
+  name: "saasstartertheme-dark";
+  color-scheme: dark;
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
+  --color-primary: #fefbf6;
+  --color-primary-content: #180042;
+  --color-secondary: #5b4b8a;
+  --color-secondary-content: #fefbf6;
+  --color-accent: #f472b6;
+  --color-accent-content: #180042;
+  --color-neutral: #fefbf6;
+  --color-neutral-content: #180042;
+  --color-base-100: #180042;
+  --color-base-200: #1f1a33;
+  --color-base-300: #2c2455;
+  --color-base-content: #fefbf6;
+  --color-info: oklch(70% 0.2 220);
+  --color-info-content: #180042;
+  --color-success: #22c55e;
+  --color-success-content: #180042;
+  --color-warning: #eab308;
+  --color-warning-content: #180042;
+  --color-error: #ef4444;
+  --color-error-content: #180042;
+
+  --radius-selector: 1rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.5rem;
+
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+
+  --border: 1px;
+
+  --depth: 1;
+  --noise: 0;
+}
+
+/* ─── Tailwind v4 Border Compatibility Fix ───────────────────────────── */
 @layer base {
+
   *,
   ::after,
   ::before,
@@ -75,14 +99,16 @@ a {
   @apply cursor-pointer;
 }
 
-/* Hack to temporarily solve https://github.com/supabase/auth-ui/issues/219 */
+/* ─── Supabase Auth UI Fix ───────────────────────────────────────────── */
 .authBtn {
   @apply btn;
 }
+
 button[disabled].authBtn {
   font-size: 0.001px;
   filter: brightness(65%);
 }
+
 button[disabled].authBtn::before {
   font-size: 14px;
   content: "Loading...";
