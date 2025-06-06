@@ -1,6 +1,6 @@
 /**
  *  src/routes/api/flowStream/+server.ts
- *  Streams BTC mark-price once per second via Server-Sent Events.
+ *  Streams mark-price once per second via Server-Sent Events.
  *  – Works in dev & prod
  *  – Stops cleanly on Stop-Flow or socket close
  *  – Guards against all Hyperliquid response variants
@@ -18,13 +18,13 @@ export async function GET() {
 	}
 
 	const stream = new PassThrough();
-	let closed   = false;
+	let   closed = false;
 
 	const ENDPOINT = 'https://api.hyperliquid.xyz/info';
-	const BODY     = JSON.stringify({ type: 'metaAndAssetCtxs' });
+	const BODY     = JSON.stringify({ type: 'metaAndAssetCtxs' });   // ← no coin
 
 	/* -------------------------------------------------------------- */
-	/*  Helper: fetch BTC mark-price safely                            */
+	/*  Helper: fetch active-asset mark-price safely                  */
 	/* -------------------------------------------------------------- */
 	async function fetchPrice(): Promise<number | null> {
 		try {
@@ -41,24 +41,24 @@ export async function GET() {
 
 			const json: {
 				markPrices?: { asset: string; markPrice: number }[];
-				assetCtx?: { markPrice?: number };
-				error?: string;
+				assetCtx?:   { markPrice?: number };
+				error?:      string;
 				[key: string]: unknown;
-			} = await res.json(); // may be meta, single-asset, or error
+			} = await res.json();
 
-			/* 1 meta reply – { markPrices: [ { asset, markPrice } ] } */
+			/* 1 · meta reply – array of markPrices */
 			if (Array.isArray(json.markPrices)) {
 				const asset = (globalThis.__flow_coin ?? 'BTC').split('-')[0];
 				const mp    = json.markPrices.find((p) => p.asset === asset);
 				return typeof mp?.markPrice === 'number' ? mp.markPrice : null;
 			}
 
-			/* 2 single-asset reply – { assetCtx: { markPrice } } */
+			/* 2 · single-asset reply – assetCtx */
 			if (json.assetCtx?.markPrice && typeof json.assetCtx.markPrice === 'number') {
 				return json.assetCtx.markPrice;
 			}
 
-			/* 3 error payload – { error: "msg" } */
+			/* 3 · explicit error from API */
 			if (json.error) {
 				console.error('HL API', json.error);
 				return null;
@@ -73,7 +73,7 @@ export async function GET() {
 	}
 
 	/* -------------------------------------------------------------- */
-	/*  1 Hz push loop                                                 */
+	/*  1-Hz push loop                                                 */
 	/* -------------------------------------------------------------- */
 	const timer = setInterval(async () => {
 		if (closed || !globalThis.__flow_running) {
