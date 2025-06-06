@@ -7,13 +7,17 @@
   const dispatch = createEventDispatcher()
 
   async function startStreams(coin: string) {
-    await fetch("/api/startFlow", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ coin }),
-    })
-    streamRunning.set(true)
-    dispatch("start", { coin })
+    try {
+      await fetch("/api/startFlow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coin }),
+      })
+      streamRunning.set(true)
+      dispatch("start", { coin })
+    } catch (e) {
+      alert("Could not start streams – check server logs.")
+    }
   }
 
   async function stopStreams() {

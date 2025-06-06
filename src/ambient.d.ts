@@ -9,6 +9,7 @@ declare global {
   }
   /* eslint-disable no-var */
   var __flow_running: boolean | undefined
+  var __flow_coin: string | undefined
 }
 
 export {}
