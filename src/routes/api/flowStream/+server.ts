@@ -1,37 +1,24 @@
-import { error } from "@sveltejs/kit"
+import { PassThrough } from "node:stream"
 
 export async function GET() {
-  if (!globalThis.__flow_running)
-    throw error(409, { message: "stream not running" })
+  if (!globalThis.__flow_running) {
+    return new Response("stream not running", { status: 409 })
+  }
 
-  globalThis.__flow_clients = globalThis.__flow_clients || []
-  let interval: NodeJS.Timeout
-  const stream = new ReadableStream<string>({
-    start(ctrl) {
-      const send = () => {
-        if (!globalThis.__flow_running) return ctrl.close()
-        ctrl.enqueue(`data: ${JSON.stringify({ price: 64000 })}\n\n`)
-      }
-      send()
-      interval = setInterval(send, 1000)
-    },
-    cancel() {
-      clearInterval(interval)
-      if (globalThis.__flow_clients) {
-        globalThis.__flow_clients = globalThis.__flow_clients.filter(
-          (r: Response) => r !== response,
-        )
-      }
-    },
-  })
+  const stream = new PassThrough()
+  const timer = setInterval(() => {
+    if (!globalThis.__flow_running) {
+      clearInterval(timer)
+      stream.end()
+    } else {
+      stream.write(`data: {"price":64000}\n\n`)
+    }
+  }, 1000)
 
-  const response = new Response(stream, {
+  return new Response(stream as unknown as ReadableStream<Uint8Array>, {
     headers: {
-      "Content-Type": "text/event-stream; charset=utf-8",
+      "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      Connection: "keep-alive",
     },
   })
-  globalThis.__flow_clients.push(response)
-  return response
 }
