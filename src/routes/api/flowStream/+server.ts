@@ -5,23 +5,23 @@ export async function GET() {
     throw error(409, { message: "stream not running" })
 
   globalThis.__flow_clients = globalThis.__flow_clients || []
-  let controller: ReadableStreamDefaultController<string> | undefined
   const stream = new ReadableStream<string>({
     start(ctrl) {
-      controller = ctrl
       const send = () => {
         if (!globalThis.__flow_running) return ctrl.close()
         ctrl.enqueue(`data: ${JSON.stringify({ price: 64000 })}\n\n`)
       }
       send()
       const id = setInterval(send, 1000)
-      ctrl.signal.addEventListener("abort", () => clearInterval(id))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(ctrl as any).signal.addEventListener("abort", () => clearInterval(id))
     },
     cancel() {
-      controller?.abort()
-      globalThis.__flow_clients = globalThis.__flow_clients.filter(
-        (r: Response) => r !== response,
-      )
+      if (globalThis.__flow_clients) {
+        globalThis.__flow_clients = globalThis.__flow_clients.filter(
+          (r: Response) => r !== response,
+        )
+      }
     },
   })
 
