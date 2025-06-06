@@ -31,8 +31,12 @@ const supabase: Handle = async ({ event, resolve }) => {
     { auth: { persistSession: false } },
   )
 
+  if ("suppressGetSessionWarning" in event.locals.supabase.auth) {
+    // @ts-expect-error - suppressGetSessionWarning is not part of the official API
+    event.locals.supabase.auth.suppressGetSessionWarning = true
+  }
+
   // suppress deprecated warning (see GH-888)
-  // Removed direct assignment to protected property 'suppressGetSessionWarning'
 
   event.locals.safeGetSession = async () => {
     const { data: sessionData } = await event.locals.supabase.auth.getSession()
