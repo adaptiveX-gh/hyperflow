@@ -1,68 +1,105 @@
+/**
+ *  src/routes/api/flowStream/+server.ts
+ *  Streams BTC mark-price once per second via Server-Sent Events.
+ *  – Works in dev & prod
+ *  – Stops cleanly on Stop-Flow or socket close
+ *  – Guards against all Hyperliquid response variants
+ */
+
 import { PassThrough } from 'node:stream';
 
-
+/* ------------------------------------------------------------------ */
+/*  GET  /api/flowStream                                               */
+/* ------------------------------------------------------------------ */
 export async function GET() {
-  if (!globalThis.__flow_running) {
-    return new Response('stream not running', { status: 409 });
-  }
+	/* Require POST /api/startFlow first */
+	if (!globalThis.__flow_running) {
+		return new Response('stream not running', { status: 409 });
+	}
 
-  const stream = new PassThrough()
-  let closed = false
+	const stream = new PassThrough();
+	let closed   = false;
 
-  // Helper function to fetch price
-  async function fetchPrice() {
-    try {
-      const coin = globalThis.__flow_coin ?? "BTC";
-      const res = await fetch("https://api.hyperliquid.xyz/info", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "metaAndAssetCtxs", coin }),
-      });
+	const ENDPOINT = 'https://api.hyperliquid.xyz/info';
+	const BODY     = JSON.stringify({ type: 'metaAndAssetCtxs' });
 
-      if (!res.ok) throw new Error(await res.text());
+	/* -------------------------------------------------------------- */
+	/*  Helper: fetch BTC mark-price safely                            */
+	/* -------------------------------------------------------------- */
+	async function fetchPrice(): Promise<number | null> {
+		try {
+			const res = await fetch(ENDPOINT, {
+				method : 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body   : BODY
+			});
 
-      const { markPrices } = await res.json();
-      const asset = coin.split("-")[0];
-      const mp = markPrices.find((p: { asset: string }) => p.asset === asset);
-      return mp?.markPrice ?? null;
-    } catch (err) {
-      console.error("failed to fetch price", err);
-      return null;
-    }
-  }
+			if (!res.ok) {
+				console.error('HL HTTP', res.status, await res.text());
+				return null;
+			}
 
-  const timer = setInterval(async () => {
-    if (closed || !globalThis.__flow_running) {
-      clearInterval(timer);
-      if (!closed) stream.end();
-      return;
-    }
-    try {
-      const price = await fetchPrice();
-      if (price !== null) {
-        stream.write(`data: ${JSON.stringify({ price })}\n\n`);
-      }
-    } catch (e) {
-      console.error('failed to fetch price', e);
-    }
-  }, 1_000);
+			const json: {
+				markPrices?: { asset: string; markPrice: number }[];
+				assetCtx?: { markPrice?: number };
+				error?: string;
+				[key: string]: unknown;
+			} = await res.json(); // may be meta, single-asset, or error
 
-  // stop interval if client disconnects
-  stream.on('close', () => {
-    closed = true;
-    clearInterval(timer);
-  });
+			/* 1 meta reply – { markPrices: [ { asset, markPrice } ] } */
+			if (Array.isArray(json.markPrices)) {
+				const asset = (globalThis.__flow_coin ?? 'BTC').split('-')[0];
+				const mp    = json.markPrices.find((p) => p.asset === asset);
+				return typeof mp?.markPrice === 'number' ? mp.markPrice : null;
+			}
 
-  stream.on("close", () => {
-    closed = true
-    clearInterval(timer)
-  })
+			/* 2 single-asset reply – { assetCtx: { markPrice } } */
+			if (json.assetCtx?.markPrice && typeof json.assetCtx.markPrice === 'number') {
+				return json.assetCtx.markPrice;
+			}
 
-  return new Response(stream as unknown as ReadableStream<Uint8Array>, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive'
-    }
-  });
+			/* 3 error payload – { error: "msg" } */
+			if (json.error) {
+				console.error('HL API', json.error);
+				return null;
+			}
+
+			console.warn('HL unknown schema', json);
+			return null;
+		} catch (err) {
+			console.error('fetchPrice network error', (err as Error).message);
+			return null;
+		}
+	}
+
+	/* -------------------------------------------------------------- */
+	/*  1 Hz push loop                                                 */
+	/* -------------------------------------------------------------- */
+	const timer = setInterval(async () => {
+		if (closed || !globalThis.__flow_running) {
+			clearInterval(timer);
+			if (!closed) stream.end();
+			return;
+		}
+
+		const price = await fetchPrice();
+		if (price !== null) {
+			stream.write(`data: ${JSON.stringify({ price })}\n\n`);
+		}
+	}, 1_000);
+
+	/* Close timer if client disconnects */
+	stream.on('close', () => {
+		closed = true;
+		clearInterval(timer);
+	});
+
+	/* SSE response */
+	return new Response(stream as unknown as ReadableStream<Uint8Array>, {
+		headers: {
+			'Content-Type': 'text/event-stream',
+			'Cache-Control': 'no-cache',
+			Connection: 'keep-alive'
+		}
+	});
 }
