@@ -6,23 +6,30 @@ export async function GET() {
   }
 
   const stream = new PassThrough()
+  let closed = false
+
   const timer = setInterval(async () => {
-    if (!globalThis.__flow_running) {
+    if (closed || !globalThis.__flow_running) {
       clearInterval(timer)
       stream.end()
       return
     }
 
     try {
+      const coin = globalThis.__flow_coin ?? "BTC"
       const res = await fetch("https://api.hyperliquid.xyz/info", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "metaAndAssetCtxs" }),
+        body: JSON.stringify({ type: "metaAndAssetCtxs", coin }),
       })
+
+      if (!res.ok) throw new Error(await res.text())
+
       const { markPrices } = await res.json()
-      const btc = markPrices.find((p: { asset: string }) => p.asset === "BTC")
-      if (btc) {
-        stream.write(`data: ${JSON.stringify({ price: btc.markPrice })}\n\n`)
+      const asset = coin.split("-")[0]
+      const mp = markPrices.find((p: { asset: string }) => p.asset === asset)
+      if (mp && !closed) {
+        stream.write(`data: ${JSON.stringify({ price: mp.markPrice })}\n\n`)
       }
     } catch (err) {
       console.error("failed to fetch price", err)
@@ -30,6 +37,7 @@ export async function GET() {
   }, 1000)
 
   stream.on("close", () => {
+    closed = true
     clearInterval(timer)
   })
 
