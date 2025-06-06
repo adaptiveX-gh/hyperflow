@@ -81,14 +81,13 @@ const securityHeaders: Handle = async ({ event, resolve }) => {
 	/* 2 — send ONE single-line CSP header */
 	res.headers.set(
 		'content-security-policy',
-		[
-			// everything else
-			"default-src 'self'",
-			// EventSource + HL REST
-			"connect-src 'self' https://api.hyperliquid.xyz",
-
-		].join('; ')
+		"default-src 'self'; " +
+		"connect-src 'self' https://api.hyperliquid.xyz; " +
+		"img-src 'self' data:; " +
+		"script-src 'self' 'unsafe-inline'; " +
+		"style-src  'self' 'unsafe-inline'"
 	);
+
 
 	return res;
 };
