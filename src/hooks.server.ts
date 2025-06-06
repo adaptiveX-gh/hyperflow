@@ -98,4 +98,13 @@ const authGuard: Handle = async ({ event, resolve }) => {
   return resolve(event)
 }
 
-export const handle: Handle = sequence(supabase, authGuard)
+const securityHeaders: Handle = async ({ event, resolve }) => {
+  const response = await resolve(event)
+  response.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; connect-src 'self' https://api.hyperliquid.xyz",
+  )
+  return response
+}
+
+export const handle: Handle = sequence(supabase, authGuard, securityHeaders)
