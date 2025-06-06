@@ -91,10 +91,9 @@ const authGuard: Handle = async ({ event, resolve }) => {
   event.locals.session = session
   event.locals.user = user
 
-  if (event.url.pathname.startsWith('/.well-known')) {
-    return await resolve(event);   // skip auth check
+  if (event.url.pathname.startsWith("/.well-known")) {
+    return await resolve(event) // skip auth check
   }
-
 
   return resolve(event)
 }

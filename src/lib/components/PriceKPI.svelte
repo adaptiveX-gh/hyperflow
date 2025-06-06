@@ -1,9 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte"
-  import { writable } from "svelte/store"
   import { activeCoin, streamRunning } from "$lib/stores/streams"
-
-  export const price = writable<number | null>(null)
+  import { price } from "$lib/stores/price"
 
   let es: EventSource | null = null
   let currentCoin: string
@@ -19,7 +17,8 @@
     es = new EventSource("/api/flowStream")
     es.onmessage = (e) => {
       const data = JSON.parse(e.data)
-      if (typeof data.price === "number") price.set(data.price)
+      const num = Number(data.price)
+      if (!Number.isNaN(num)) price.set(num)
     }
     es.onerror = () => es?.close()
     currentCoin = coin
