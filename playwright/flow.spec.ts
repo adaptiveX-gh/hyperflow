@@ -28,7 +28,7 @@ async function readEvents(
 
 test.describe("flow stream", () => {
   test("startFlow then stopFlow closes stream", async () => {
-    let res = await fetch(`${base}/api/startFlow`, { method: "POST" })
+    const res = await fetch(`${base}/api/startFlow`, { method: "POST" })
     expect(res.ok).toBeTruthy()
 
     const streamRes = await fetch(`${base}/api/flowStream`)

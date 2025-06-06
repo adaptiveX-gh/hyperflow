@@ -6,7 +6,6 @@ export async function GET() {
 
   globalThis.__flow_clients = globalThis.__flow_clients || []
   let controller: ReadableStreamDefaultController<string> | undefined
-  let response: Response
   const stream = new ReadableStream<string>({
     start(ctrl) {
       controller = ctrl
@@ -26,7 +25,7 @@ export async function GET() {
     },
   })
 
-  response = new Response(stream, {
+  const response = new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache",

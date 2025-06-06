@@ -12,6 +12,7 @@
 
 <svelte:head>
   <script src="https://code.highcharts.com/highcharts.js" defer></script>
+  <script src="https://code.highcharts.com/highcharts-more.js" defer></script>
   <script
     src="https://code.highcharts.com/modules/solid-gauge.js"
     defer

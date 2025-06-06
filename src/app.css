@@ -101,7 +101,6 @@
 
 /* ─── Tailwind v4 Border Compatibility Fix ───────────────────────────── */
 @layer base {
-
   *,
   ::after,
   ::before,
