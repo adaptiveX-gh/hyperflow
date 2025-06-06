@@ -5,6 +5,7 @@ export async function GET() {
     throw error(409, { message: "stream not running" })
 
   globalThis.__flow_clients = globalThis.__flow_clients || []
+  let interval: NodeJS.Timeout
   const stream = new ReadableStream<string>({
     start(ctrl) {
       const send = () => {
@@ -12,11 +13,10 @@ export async function GET() {
         ctrl.enqueue(`data: ${JSON.stringify({ price: 64000 })}\n\n`)
       }
       send()
-      const id = setInterval(send, 1000)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(ctrl as any).signal.addEventListener("abort", () => clearInterval(id))
+      interval = setInterval(send, 1000)
     },
     cancel() {
+      clearInterval(interval)
       if (globalThis.__flow_clients) {
         globalThis.__flow_clients = globalThis.__flow_clients.filter(
           (r: Response) => r !== response,
