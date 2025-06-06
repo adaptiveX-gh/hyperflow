@@ -4,7 +4,7 @@ import { WebsiteBaseUrl } from "../../../../config"
 
 export const actions = {
   toggleEmailSubscription: async ({ locals: { supabase, safeGetSession } }) => {
-    const { session } = await safeGetSession()
+    const { session, user } = await safeGetSession()
 
     if (!session) {
       redirect(303, "/login")
@@ -13,7 +13,7 @@ export const actions = {
     const { data: currentProfile } = await supabase
       .from("profiles")
       .select("unsubscribed")
-      .eq("id", session.user.id)
+      .eq("id", user.id)
       .single()
 
     const newUnsubscribedStatus = !currentProfile?.unsubscribed
@@ -21,7 +21,7 @@ export const actions = {
     const { error } = await supabase
       .from("profiles")
       .update({ unsubscribed: newUnsubscribedStatus })
-      .eq("id", session.user.id)
+      .eq("id", user.id)
 
     if (error) {
       console.error("Error updating subscription status", error)
@@ -275,7 +275,7 @@ export const actions = {
     const { data: priorProfile, error: priorProfileError } = await supabase
       .from("profiles")
       .select(`*`)
-      .eq("id", session?.user.id)
+      .eq("id", user.id)
       .single()
 
     const { error } = await supabase
@@ -306,12 +306,12 @@ export const actions = {
     if (newProfile) {
       await sendAdminEmail({
         subject: "Profile Created",
-        body: `Profile created by ${session.user.email}\nFull name: ${fullName}\nCompany name: ${companyName}\nWebsite: ${website}`,
+        body: `Profile created by ${user.email}\nFull name: ${fullName}\nCompany name: ${companyName}\nWebsite: ${website}`,
       })
 
       // Send welcome email
       await sendUserEmail({
-        user: session.user,
+        user,
         subject: "Welcome!",
         from_email: "no-reply@saasstarter.work",
         template_name: "welcome_email",
