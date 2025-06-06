@@ -29,7 +29,7 @@ describe("toggleEmailSubscription", () => {
   })
 
   it("should redirect if no session", async () => {
-    mockSafeGetSession.mockResolvedValue({ session: null })
+    mockSafeGetSession.mockResolvedValue({ session: null, user: null })
 
     await expect(
       actions.toggleEmailSubscription({
@@ -45,7 +45,10 @@ describe("toggleEmailSubscription", () => {
 
   it("should toggle subscription status from false to true", async () => {
     const mockSession = { user: { id: "user123" } }
-    mockSafeGetSession.mockResolvedValue({ session: mockSession })
+    mockSafeGetSession.mockResolvedValue({
+      session: mockSession,
+      user: mockSession.user,
+    })
 
     // Mock the first query to get the current status
     mockSupabase.single.mockResolvedValueOnce({ data: { unsubscribed: false } })
@@ -72,7 +75,10 @@ describe("toggleEmailSubscription", () => {
 
   it("should toggle subscription status from true to false", async () => {
     const mockSession = { user: { id: "user123" } }
-    mockSafeGetSession.mockResolvedValue({ session: mockSession })
+    mockSafeGetSession.mockResolvedValue({
+      session: mockSession,
+      user: mockSession.user,
+    })
 
     // Mock the first query to get the current status
     mockSupabase.single.mockResolvedValueOnce({ data: { unsubscribed: true } })
@@ -99,7 +105,10 @@ describe("toggleEmailSubscription", () => {
 
   it("should return fail response if update operation fails", async () => {
     const mockSession = { user: { id: "user123" } }
-    mockSafeGetSession.mockResolvedValue({ session: mockSession })
+    mockSafeGetSession.mockResolvedValue({
+      session: mockSession,
+      user: mockSession.user,
+    })
 
     // Mock the first query to get the current status
     mockSupabase.single.mockResolvedValueOnce({ data: { unsubscribed: false } })
